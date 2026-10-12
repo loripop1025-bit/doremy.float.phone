@@ -6,46 +6,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  trigger-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-        env:
-          NODE_OPTIONS: '--max-old-space-size=4096'
-          NEXT_TELEMETRY_DISABLED: '1'
-
-      - name: Deploy to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          source: ".next/,public/,package.json,package-lock.json,next.config.*"
-          target: "/home/ubuntu/projects/doremy.float.phone"
-          overwrite: true
-
-      - name: Restart service
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          script: |
-            cd /home/ubuntu/projects/doremy.float.phone
-            npm ci --omit=dev
-            pm2 restart doremy-float-phone || pm2 start npm --name doremy-float-phone -- start
-
+      - name: Trigger VPS Deploy
+        run: |
+          curl -sf -X POST https://deploy.loripop.xyz/deploy \
+            -H "x-deploy-token: ${{ secrets.DEPLOY_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"ref":"${{ github.sha }}"}'
