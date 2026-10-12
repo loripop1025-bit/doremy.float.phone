@@ -36,12 +36,13 @@ jobs:
           target: "/home/ubuntu/projects/doremy.float.phone"
           overwrite: true
 
-      - name: Restart service
+       - name: Restart service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
           script: |
             cd /home/ubuntu/projects/doremy.float.phone
             npm ci --omit=dev
