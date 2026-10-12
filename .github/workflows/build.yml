@@ -36,7 +36,7 @@ jobs:
           target: "/home/ubuntu/projects/doremy.float.phone"
           overwrite: true
 
-       - name: Restart service
+  - name: Restart service
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
