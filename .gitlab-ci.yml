@@ -1,0 +1,31 @@
+# GitLab CI for doremy.float.phone
+# Phase 1: build only (no deploy yet)
+
+image: node:20-bookworm
+
+stages:
+  - build
+
+variables:
+  # reduce Next.js memory footprint
+  NODE_OPTIONS: "--max-old-space-size=4096"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+    - .next/cache/
+
+build:
+  stage: build
+  script:
+    - npm ci --prefer-offline
+    - npm run build
+  artifacts:
+    paths:
+      - .next/
+      - public/
+    expire_in: 3 days
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
