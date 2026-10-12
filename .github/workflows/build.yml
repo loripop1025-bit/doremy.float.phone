@@ -1,4 +1,4 @@
-name: Build
+name: Build & Deploy
 
 on:
   push:
@@ -26,11 +26,23 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=4096'
           NEXT_TELEMETRY_DISABLED: '1'
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
         with:
-          name: next-build
-          path: |
-            .next/
-            public/
-          retention-days: 3
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: ".next/,public/,package.json,package-lock.json,next.config.*"
+          target: "/home/ubuntu/projects/doremy.float.phone"
+          overwrite: true
+
+      - name: Restart service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/projects/doremy.float.phone
+            npm ci --omit=dev
+            pm2 restart doremy-float-phone || pm2 start npm --name doremy-float-phone -- start
